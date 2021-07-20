@@ -3,4 +3,4 @@
 # Stitch   
 Stich is a J2EE web services framework.  
 
-> Note : The framework usage is explained to be used with [Tomcat](https://tomcat.apache.org/)
+> Note : At present stage, The framework only works with [Tomcat](https://tomcat.apache.org/)
