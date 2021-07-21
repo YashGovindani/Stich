@@ -27,12 +27,12 @@ public class Stitch extends HttpServlet
             {
                 Service service = model.get(path);
                 String requestMethod = request.getMethod();
-                if(requestMethod.equals("GET") && service.getRequestMethod()!=service.GET)
+                if(requestMethod.equals("GET") && !service.isGetAllowed())
                 {
                     response.sendError(response.SC_METHOD_NOT_ALLOWED);
                     return;
                 }
-                if(requestMethod.equals("POST") && service.getRequestMethod()!=service.POST)
+                if(requestMethod.equals("POST") && service.isPostAllowed())
                 {
                     response.sendError(response.SC_METHOD_NOT_ALLOWED);
                     return;

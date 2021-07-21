@@ -28,29 +28,25 @@ public class StartStitching extends HttpServlet
                 String className = file.getName().substring(0,file.getName().length()-6);
                 System.out.println("Checking for class : " + currentPackage + "." + className);
                 Class classReference = Class.forName(currentPackage + "." + className);
-                Class path = Class.forName("com.stitch.annotation.Path");
                 Path pathObject = (Path)classReference.getAnnotation(Path.class);
-                POST postObject = (POST)classReference.getDeclaredAnnotation(POST.class);
-                Service.RequestMethod classRequestType = Service.GET;
-                if(postObject != null) classRequestType =  Service.POST;
+                Boolean isGetAllowedOnClass = (classReference.getDeclaredAnnotation(GET.class) != null);
+                Boolean isPostAllowedOnClass = (classReference.getDeclaredAnnotation(POST.class) != null);
                 if(pathObject == null) continue;
                 String pathString = pathObject.value();
                 for(Method method:classReference.getMethods())
                 {
+                    Boolean isGetAllowedOnMethod = (isGetAllowedOnClass || (method.getAnnotation(GET.class) != null));
+                    Boolean isPostAllowedOnMethod = (isPostAllowedOnClass || (method.getAnnotation(POST.class) != null));
                     pathObject = (Path)method.getAnnotation(Path.class);
-                    GET getObject = (GET)method.getAnnotation(GET.class);
-                    postObject = (POST)method.getAnnotation(POST.class);
-                    if(pathObject == null) continue;
+                    if(pathObject == null || (!isGetAllowedOnMethod && !isPostAllowedOnMethod)) continue;
                     pathString += pathObject.value();
-                    Service.RequestMethod methodRequestType = classRequestType;
-                    if(getObject != null) methodRequestType = Service.GET;
-                    else if(postObject != null) methodRequestType = Service.POST;
                     Service service = new Service();
                     service.setServiceClass(classReference);
                     service.setPath(pathString);
                     service.setService(method);
-                    service.setRequestMethod(methodRequestType);
-                    Forward forwardAnnotation = method.getAnnotation(Forward.class);
+                    service.isGetAllowed(isGetAllowedOnMethod);
+                    service.isPostAllowed(isPostAllowedOnMethod);
+                    Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
                     model.put(pathString, service);
                     System.out.println("Added service path : " + pathString);
