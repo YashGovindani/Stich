@@ -33,6 +33,10 @@ public class StartStitching extends HttpServlet
                 Boolean isPostAllowedOnClass = (classReference.getDeclaredAnnotation(POST.class) != null);
                 if(pathObject == null) continue;
                 String pathString = pathObject.value();
+                Boolean injectApplicationDirectory = (classReference.getDeclaredAnnotation(InjectApplicationDirectory.class)!=null);
+                Boolean injectSessionScope = (classReference.getDeclaredAnnotation(InjectSessionScope.class)!=null);
+                Boolean injectApplicationScope = (classReference.getDeclaredAnnotation(InjectApplicationScope.class)!=null);
+                Boolean injectRequestScope = (classReference.getDeclaredAnnotation(InjectRequestScope.class)!=null);
                 for(Method method:classReference.getMethods())
                 {
                     Boolean isGetAllowedOnMethod = (isGetAllowedOnClass || (method.getAnnotation(GET.class) != null));
@@ -46,6 +50,10 @@ public class StartStitching extends HttpServlet
                     service.setService(method);
                     service.isGetAllowed(isGetAllowedOnMethod);
                     service.isPostAllowed(isPostAllowedOnMethod);
+                    service.injectApplicationDirectory(injectApplicationDirectory);
+                    service.injectApplicationScope(injectApplicationScope);
+                    service.injectRequestScope(injectRequestScope);
+                    service.injectSessionScope(injectSessionScope);
                     Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
                     model.put(pathString, service);
