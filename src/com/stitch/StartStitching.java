@@ -12,6 +12,10 @@ import java.lang.reflect.*;
 
 public class StartStitching extends HttpServlet
 {
+    private static List<Service> startupList;
+    static{
+        startupList = new ArrayList<Service>();
+    }
     private static void traversePackage(StitchModel model, File packageFolder,String currentPackage) throws ServiceException
     {
         try
@@ -42,7 +46,7 @@ public class StartStitching extends HttpServlet
                     Boolean isGetAllowedOnMethod = (isGetAllowedOnClass || (method.getAnnotation(GET.class) != null));
                     Boolean isPostAllowedOnMethod = (isPostAllowedOnClass || (method.getAnnotation(POST.class) != null));
                     pathObject = (Path)method.getAnnotation(Path.class);
-                    if(pathObject == null || (!isGetAllowedOnMethod && !isPostAllowedOnMethod)) continue;
+                    if(pathObject == null) continue;
                     pathString += pathObject.value();
                     Service service = new Service();
                     service.setServiceClass(classReference);
@@ -56,6 +60,18 @@ public class StartStitching extends HttpServlet
                     service.injectSessionScope(injectSessionScope);
                     Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
+                    OnStartup onStartup = (OnStartup)method.getAnnotation(OnStartup.class);
+                    if(onStartup != null)
+                    {
+                        int priority = onStartup.priority();
+                        if(priority <= 0) throw new ServiceException("For startup service : " + method.getName() + ", Priority should be >=1");
+                        if(!method.getReturnType().equals(void.class)) throw new ServiceException("For startup service : " + method.getName() + ", return type should " + void.class);
+                        if(method.getParameterTypes().length > 0) throw new ServiceException("Startup service : " + method.getName() + " should be non-parameterized");
+                        service.setRunOnStartup(true);
+                        service.setPriority(priority);
+                        System.out.println("Startup service : " + service.getPath() + ", added with priority : " + priority);
+                        startupList.add(service);
+                    }
                     model.put(pathString, service);
                     System.out.println("Added service path : " + pathString);
                 }
@@ -81,6 +97,12 @@ public class StartStitching extends HttpServlet
             String pathToClasses = servletContext.getRealPath("") + File.separator + "WEB-INF" + File.separator + "classes";
             if(!(new File(pathToClasses + File.separator + packageHead).exists())) throw new ServiceException("Invalid SERVICE_PACKAGE_PREFIX");
             traversePackage(model, new File(pathToClasses + File.separator + packageHead), packageHead);
+            Collections.sort(startupList, (Service s1, Service s2) -> s1.getPriority() - s2.getPriority());
+            for(Service service:startupList)
+            {
+                System.out.println("Executing service : " + service.getPath());
+                service.getService().invoke(service.getServiceClass().getConstructor().newInstance(), new Object[0]);
+            }
             servletContext.setAttribute("model", model);
             System.out.println();
             System.out.println("/*** Stitch initiated ***/");

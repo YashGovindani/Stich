@@ -10,6 +10,12 @@ public class Service
     private Boolean isGetAllowed;
     private Boolean isPostAllowed;
     private String forwardTo;
+    private Boolean runOnStartup;
+    private int priority;
+    private Boolean injectApplicationDirectory;
+    private Boolean injectSessionScope;
+    private Boolean injectApplicationScope;
+    private Boolean injectRequestScope;
     public Service()
     {
         this.serviceClass = null;
@@ -18,6 +24,12 @@ public class Service
         this.isGetAllowed = false;
         this.isPostAllowed = false;
         this.forwardTo = "";
+        this.runOnStartup = false;
+        this.priority = 0;
+        this.injectApplicationDirectory = false;
+        this.injectApplicationScope = false;
+        this.injectRequestScope = false;
+        this.injectSessionScope = false;
     }
     public void setServiceClass(Class serviceClass)
     {
@@ -66,5 +78,53 @@ public class Service
     public String getForwardTo()
     {
         return this.forwardTo;
+    }
+    public void injectApplicationDirectory(Boolean injectApplicationDirectory)
+    {
+        this.injectApplicationDirectory = injectApplicationDirectory;
+    }
+    public Boolean injectApplicationDirectory()
+    {
+        return this.injectApplicationDirectory;
+    }
+    public void injectSessionScope(Boolean injectSessionScope)
+    {
+        this.injectSessionScope = injectSessionScope;
+    }
+    public Boolean injectSessionScope()
+    {
+        return this.injectSessionScope;
+    }
+    public void injectApplicationScope(Boolean injectApplicationScope)
+    {
+        this.injectApplicationScope = injectApplicationScope;
+    }
+    public Boolean injectApplicationScope()
+    {
+        return this.injectApplicationScope;
+    }
+    public void injectRequestScope(Boolean injectRequestScope)
+    {
+        this.injectRequestScope = injectRequestScope;
+    }
+    public Boolean injectRequestScope()
+    {
+        return this.injectRequestScope;
+    }
+    public void setRunOnStartup(Boolean runOnStartup)
+    {
+        this.runOnStartup = runOnStartup;
+    }
+    public Boolean getRunOnStartup()
+    {
+        return this.runOnStartup;
+    }
+    public void setPriority(int priority)
+    {
+        this.priority = priority;
+    }
+    public int getPriority()
+    {
+        return this.priority;
     }
 }
