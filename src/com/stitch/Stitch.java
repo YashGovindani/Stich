@@ -8,9 +8,24 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.util.*;
 
 public class Stitch extends HttpServlet
 {
+    private boolean compareFieldType(Field field, Object obj)
+    {
+        boolean result = field.getType().isInstance(obj);
+        if(result) return result;
+        if(obj instanceof Character && field.getType().equals(char.class)) return true;
+        if(obj instanceof Byte && field.getType().equals(byte.class)) return true;
+        if(obj instanceof Short && field.getType().equals(short.class)) return true;
+        if(obj instanceof Integer && field.getType().equals(int.class)) return true;
+        if(obj instanceof Long && field.getType().equals(long.class)) return true;
+        if(obj instanceof Float && field.getType().equals(float.class)) return true;
+        if(obj instanceof Double && field.getType().equals(double.class)) return true;
+        if(obj instanceof Boolean && field.getType().equals(boolean.class)) return true;
+        return result;
+    }
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     {
         doGet(request, response);
@@ -73,6 +88,27 @@ public class Stitch extends HttpServlet
                     Method method = serviceClass.getMethod("setSessionScope",new Class[]{SessionScope.class});
                     method.invoke(object, new Object[]{new SessionScope(session)});
                 }
+                List<Field> autoWiredList = new ArrayList<>(); // though not required but said by sir
+                AutoWired autoWiredAnnotation;
+                String name;
+                Object value;
+                String fieldName;
+                for(Field field:serviceClass.getDeclaredFields())
+                {
+                    autoWiredAnnotation = (AutoWired)field.getAnnotation(AutoWired.class);
+                    if(autoWiredAnnotation == null) continue;
+                    autoWiredList.add(field);
+                    name = autoWiredAnnotation.name();
+                    value = request.getAttribute(name);
+                    if(value == null) value = session.getAttribute(name);
+                    if(value == null) value = servletContext.getAttribute(name);
+                    if(value != null && !compareFieldType(field, value)) throw new ServiceException("For service : " + path + ", to auto wire field : " + field.getName() + ", expected : " + field.getType() + ", got : " + value.getClass());
+                    fieldName = field.getName();
+                    fieldName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
+                    Method method = serviceClass.getMethod("set" + fieldName, new Class[]{field.getType()});
+                    if(method == null) throw new ServiceException("For service : " + path + ", setter not found to auto wire field : " + field.getName());
+                    method.invoke(object, new Object[]{value});
+                } 
                 service.getService().invoke(object, new Object[0]);
                 if(service.getForwardTo().length() == 0) return;
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(service.getForwardTo());
