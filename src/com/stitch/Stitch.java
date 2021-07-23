@@ -109,7 +109,30 @@ public class Stitch extends HttpServlet
                     if(method == null) throw new ServiceException("For service : " + path + ", setter not found to auto wire field : " + field.getName());
                     method.invoke(object, new Object[]{value});
                 } 
-                service.getService().invoke(object, new Object[0]);
+                RequestParameter requestParameterAnnotation;
+                List<Object> argumentList = new ArrayList<>();
+                String requestParameterName;
+                String requestParameterValue;
+                Class requestParameterClass;
+                for(Parameter parameter:service.getService().getParameters())
+                {
+                    requestParameterAnnotation = (RequestParameter)parameter.getAnnotation(RequestParameter.class);
+                    if(requestParameterAnnotation == null) throw new ServiceException("For service : " + path +", parameter should be annoted with " + RequestParameter.class);
+                    requestParameterName = requestParameterAnnotation.value();
+                    requestParameterValue = request.getParameter(requestParameterName);
+                    requestParameterClass = parameter.getType();
+                    if(requestParameterValue == null) argumentList.add(requestParameterValue);
+                    else if(requestParameterClass.equals(Character.class) || requestParameterClass.equals(char.class)) argumentList.add(requestParameterValue.charAt(0));
+                    else if(requestParameterClass.equals(byte.class) || requestParameterClass.equals(Byte.class)) argumentList.add(Byte.valueOf(requestParameterValue));
+                    else if(requestParameterClass.equals(short.class) || requestParameterClass.equals(Short.class)) argumentList.add(Short.valueOf(requestParameterValue));
+                    else if(requestParameterClass.equals(int.class) || requestParameterClass.equals(Integer.class)) argumentList.add(Integer.parseInt(requestParameterValue));
+                    else if(requestParameterClass.equals(long.class) || requestParameterClass.equals(Long.class)) argumentList.add(Long.valueOf(requestParameterValue));
+                    else if(requestParameterClass.equals(float.class) || requestParameterClass.equals(Float.class)) argumentList.add(Float.valueOf(requestParameterValue));
+                    else if(requestParameterClass.equals(double.class) || requestParameterClass.equals(Double.class)) argumentList.add(Double.valueOf(requestParameterValue));
+                    else if(requestParameterClass.equals(boolean.class) || requestParameterClass.equals(Boolean.class)) argumentList.add(Boolean.valueOf(requestParameterValue));
+                    else argumentList.add(requestParameterValue);
+                }
+                service.getService().invoke(object, argumentList.toArray());
                 if(service.getForwardTo().length() == 0) return;
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(service.getForwardTo());
                 requestDispatcher.forward(request, response);
