@@ -47,10 +47,11 @@ public class StartStitching extends HttpServlet
                     Boolean isPostAllowedOnMethod = (isPostAllowedOnClass || (method.getAnnotation(POST.class) != null));
                     pathObject = (Path)method.getAnnotation(Path.class);
                     if(pathObject == null) continue;
-                    pathString += pathObject.value();
+                    String servicePath = pathString + pathObject.value();
+                    //pathString += pathObject.value();
                     Service service = new Service();
                     service.setServiceClass(classReference);
-                    service.setPath(pathString);
+                    service.setPath(servicePath);
                     service.setService(method);
                     service.isGetAllowed(isGetAllowedOnMethod);
                     service.isPostAllowed(isPostAllowedOnMethod);
@@ -72,8 +73,8 @@ public class StartStitching extends HttpServlet
                         System.out.println("Startup service : " + service.getPath() + ", added with priority : " + priority);
                         startupList.add(service);
                     }
-                    model.put(pathString, service);
-                    System.out.println("Added service path : " + pathString);
+                    model.put(servicePath, service);
+                    System.out.println("Added service path : " + servicePath);
                 }
             }
         }catch(Exception exception)
@@ -101,7 +102,17 @@ public class StartStitching extends HttpServlet
             for(Service service:startupList)
             {
                 System.out.println("Executing service : " + service.getPath());
-                service.getService().invoke(service.getServiceClass().getConstructor().newInstance(), new Object[0]);
+                Class serviceClass = service.getServiceClass();
+                Object object = serviceClass.getConstructor().newInstance();
+                if(service.injectApplicationScope())
+                {
+                    Field field = serviceClass.getDeclaredField("applicationScope");
+                    if(field == null) throw new ServiceException("For service : " + service.getPath() + ", Service class : " + serviceClass + " should have property : applicationScope of type : " + ApplicationScope.class + " to inject application scope");
+                    if(!field.getType().equals(ApplicationScope.class)) throw new ServiceException("For service : " + service.getPath() + ", Service class : " + serviceClass + " should have property : applicationScope of type : " + ApplicationScope.class + " to inject application scope");
+                    Method method = serviceClass.getMethod("setApplicationScope",new Class[]{ApplicationScope.class});
+                    method.invoke(object, new Object[]{new ApplicationScope(servletContext)});
+                }
+                service.getService().invoke(object, new Object[0]);
             }
             servletContext.setAttribute("model", model);
             System.out.println();
