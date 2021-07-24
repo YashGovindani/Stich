@@ -90,11 +90,37 @@ public class Stitch extends HttpServlet
                 }
                 List<Field> autoWiredList = new ArrayList<>(); // though not required but said by sir
                 AutoWired autoWiredAnnotation;
+                InjectRequestParameter injectRequestParameterAnnotation;
                 String name;
                 Object value;
                 String fieldName;
+                Class requestFieldClass;
+                String valueString;
                 for(Field field:serviceClass.getDeclaredFields())
                 {
+                    injectRequestParameterAnnotation = (InjectRequestParameter)field.getAnnotation(InjectRequestParameter.class);
+                    if(injectRequestParameterAnnotation != null)
+                    {
+                        name = injectRequestParameterAnnotation.value();
+                        valueString = request.getParameter(name);
+                        requestFieldClass = field.getType();
+                        if(valueString == null) value = valueString;
+                        else if(requestFieldClass.equals(Character.class) || requestFieldClass.equals(char.class)) value = valueString.charAt(0);
+                        else if(requestFieldClass.equals(byte.class) || requestFieldClass.equals(Byte.class)) value = Byte.valueOf(valueString);
+                        else if(requestFieldClass.equals(short.class) || requestFieldClass.equals(Short.class)) value = Short.valueOf(valueString);
+                        else if(requestFieldClass.equals(int.class) || requestFieldClass.equals(Integer.class)) value = Integer.parseInt(valueString);
+                        else if(requestFieldClass.equals(long.class) || requestFieldClass.equals(Long.class)) value = Long.valueOf(valueString);
+                        else if(requestFieldClass.equals(float.class) || requestFieldClass.equals(Float.class)) value = Float.valueOf(valueString);
+                        else if(requestFieldClass.equals(double.class) || requestFieldClass.equals(Double.class)) value = Double.valueOf(valueString);
+                        else if(requestFieldClass.equals(boolean.class) || requestFieldClass.equals(Boolean.class)) value = Boolean.valueOf(valueString);
+                        else value = valueString;
+                        fieldName = field.getName();
+                        fieldName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
+                        Method method = serviceClass.getMethod("set" + fieldName, new Class[]{field.getType()});
+                        if(method == null) throw new ServiceException("For service : " + path + ", setter not found to inject request parameter field : " + field.getName());
+                        method.invoke(object, new Object[]{value});
+                        continue;
+                    }
                     autoWiredAnnotation = (AutoWired)field.getAnnotation(AutoWired.class);
                     if(autoWiredAnnotation == null) continue;
                     autoWiredList.add(field);
