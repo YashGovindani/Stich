@@ -16,6 +16,9 @@ public class Service
     private Boolean injectSessionScope;
     private Boolean injectApplicationScope;
     private Boolean injectRequestScope;
+    private Boolean isSecure;
+    private String checkPost;
+    private String guard;
     public Service()
     {
         this.serviceClass = null;
@@ -30,6 +33,9 @@ public class Service
         this.injectApplicationScope = false;
         this.injectRequestScope = false;
         this.injectSessionScope = false;
+        this.isSecure = false;
+        this.checkPost = "";
+        this.guard = "";
     }
     public void setServiceClass(Class serviceClass)
     {
@@ -126,5 +132,29 @@ public class Service
     public int getPriority()
     {
         return this.priority;
+    }
+    public void isSecure(Boolean isSecure)
+    {
+        this.isSecure = isSecure;
+    }
+    public Boolean isSecure()
+    {
+        return this.isSecure;
+    }
+    public void setCheckPost(String checkPost)
+    {
+        this.checkPost = checkPost;
+    }
+    public String getCheckPost()
+    {
+        return this.checkPost;
+    }
+    public void setGuard(String guard)
+    {
+        this.guard = guard;
+    }
+    public String getGuard()
+    {
+        return this.guard;
     }
 }
