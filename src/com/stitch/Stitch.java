@@ -117,10 +117,18 @@ public class Stitch extends HttpServlet
                 for(Parameter parameter:service.getService().getParameters())
                 {
                     requestParameterAnnotation = (RequestParameter)parameter.getAnnotation(RequestParameter.class);
-                    if(requestParameterAnnotation == null) throw new ServiceException("For service : " + path +", parameter should be annoted with " + RequestParameter.class);
+                    requestParameterClass = parameter.getType();
+                    if(requestParameterAnnotation == null)
+                    {
+                        if(requestParameterClass.equals(ApplicationDirectory.class)) argumentList.add(new ApplicationDirectory(new File(servletContext.getRealPath(""))));
+                        else if(requestParameterClass.equals(ApplicationScope.class)) argumentList.add(new ApplicationScope(servletContext));
+                        else if(requestParameterClass.equals(RequestScope.class)) argumentList.add(new RequestScope(request));
+                        else if(requestParameterClass.equals(SessionScope.class)) argumentList.add(new SessionScope(session));
+                        else throw new ServiceException("For service : " + path +", either parameter should be annoted with " + RequestParameter.class + ", or should should have type either \n\t" + ApplicationDirectory.class + "\nor\t" + ApplicationScope.class + "\nor\t" + RequestScope.class + "\nor\t" + SessionScope.class);
+                        continue;
+                    }
                     requestParameterName = requestParameterAnnotation.value();
                     requestParameterValue = request.getParameter(requestParameterName);
-                    requestParameterClass = parameter.getType();
                     if(requestParameterValue == null) argumentList.add(requestParameterValue);
                     else if(requestParameterClass.equals(Character.class) || requestParameterClass.equals(char.class)) argumentList.add(requestParameterValue.charAt(0));
                     else if(requestParameterClass.equals(byte.class) || requestParameterClass.equals(Byte.class)) argumentList.add(Byte.valueOf(requestParameterValue));
