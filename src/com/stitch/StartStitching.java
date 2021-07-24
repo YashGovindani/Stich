@@ -37,18 +37,21 @@ public class StartStitching extends HttpServlet
                 Boolean isPostAllowedOnClass = (classReference.getDeclaredAnnotation(POST.class) != null);
                 if(pathObject == null) continue;
                 String pathString = pathObject.value();
+                SecuredAccess classSecuredAccess = (SecuredAccess)classReference.getDeclaredAnnotation(SecuredAccess.class);
                 Boolean injectApplicationDirectory = (classReference.getDeclaredAnnotation(InjectApplicationDirectory.class)!=null);
                 Boolean injectSessionScope = (classReference.getDeclaredAnnotation(InjectSessionScope.class)!=null);
                 Boolean injectApplicationScope = (classReference.getDeclaredAnnotation(InjectApplicationScope.class)!=null);
                 Boolean injectRequestScope = (classReference.getDeclaredAnnotation(InjectRequestScope.class)!=null);
+                SecuredAccess methodSecuredAccess;
                 for(Method method:classReference.getMethods())
                 {
                     Boolean isGetAllowedOnMethod = (isGetAllowedOnClass || (method.getAnnotation(GET.class) != null));
                     Boolean isPostAllowedOnMethod = (isPostAllowedOnClass || (method.getAnnotation(POST.class) != null));
                     pathObject = (Path)method.getAnnotation(Path.class);
                     if(pathObject == null) continue;
+                    methodSecuredAccess = (SecuredAccess)method.getAnnotation(SecuredAccess.class);
+                    if(methodSecuredAccess == null) methodSecuredAccess = classSecuredAccess;
                     String servicePath = pathString + pathObject.value();
-                    //pathString += pathObject.value();
                     Service service = new Service();
                     service.setServiceClass(classReference);
                     service.setPath(servicePath);
@@ -59,6 +62,12 @@ public class StartStitching extends HttpServlet
                     service.injectApplicationScope(injectApplicationScope);
                     service.injectRequestScope(injectRequestScope);
                     service.injectSessionScope(injectSessionScope);
+                    if(methodSecuredAccess != null)
+                    {
+                        service.isSecure(true);
+                        service.setCheckPost(methodSecuredAccess.checkPost());
+                        service.setGuard(methodSecuredAccess.guard());
+                    }
                     Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
                     OnStartup onStartup = (OnStartup)method.getAnnotation(OnStartup.class);
