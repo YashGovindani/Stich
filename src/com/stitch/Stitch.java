@@ -55,6 +55,47 @@ public class Stitch extends HttpServlet
                     response.sendError(response.SC_METHOD_NOT_ALLOWED);
                     return;
                 }
+                if(service.isSecure())
+                {
+                    Class checkPost = Class.forName(service.getCheckPost());
+                    Object object = checkPost.getConstructor().newInstance();
+                    Object value = null;
+                    for(Field field : checkPost.getDeclaredFields())
+                    {
+                        value = null;
+                        if(field.getType().equals(ApplicationDirectory.class)) value = new ApplicationDirectory(new File(servletContext.getRealPath("")));
+                        else if(field.getType().equals(ApplicationScope.class)) value = new ApplicationScope(servletContext);
+                        else if(field.getType().equals(RequestScope.class)) value = new RequestScope(request);
+                        else if(field.getType().equals(SessionScope.class)) value = new SessionScope(session);
+                        if(value == null) continue;
+                        String fieldName = field.getName();
+                        fieldName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
+                        Method method = checkPost.getMethod("set" + fieldName, new Class[]{field.getType()});
+                        if(method == null) throw new ServiceException("For service : " + path + ", setter not found to inject request parameter field : " + field.getName());
+                        method.invoke(object, new Object[]{value});
+                    }
+                    String guardString = service.getGuard();
+                    Method guard = null;
+                    for(Method method : checkPost.getDeclaredMethods())
+                    {
+                        if(method.getName().equals(guardString))
+                        {
+                            guard = method;
+                            break;
+                        }
+                    }
+                    if(guard == null) throw new ServiceException("For Check post class : " + checkPost + ", guard method : " + guardString + "does not exists");
+                    List<Object> argumentList = new LinkedList<>();
+                    for(Parameter parameter : guard.getParameters())
+                    {
+                        if(parameter.getType().equals(ApplicationDirectory.class)) argumentList.add(new ApplicationDirectory(new File(servletContext.getRealPath(""))));
+                        else if(parameter.getType().equals(ApplicationScope.class)) argumentList.add(new ApplicationScope(servletContext));
+                        else if(parameter.getType().equals(RequestScope.class)) argumentList.add(new RequestScope(request));
+                        else if(parameter.getType().equals(SessionScope.class)) argumentList.add(new SessionScope(session));
+                        else throw new ServiceException("For service : " + path + ", guard : " + guardString + " can have parameter type either\n\t" + ApplicationDirectory.class + "\nor\t" + ApplicationScope.class + "\nor\t" + RequestScope.class + "\nor\t" + SessionScope.class);
+                    }
+                    guard.invoke(object, argumentList.toArray());
+                }
                 Class serviceClass = service.getServiceClass();
                 Object object = serviceClass.getConstructor().newInstance();
                 if(service.injectApplicationDirectory())
@@ -115,11 +156,7 @@ public class Stitch extends HttpServlet
                         else if(requestFieldClass.equals(double.class) || requestFieldClass.equals(Double.class)) value = Double.valueOf(valueString);
                         else if(requestFieldClass.equals(boolean.class) || requestFieldClass.equals(Boolean.class)) value = Boolean.valueOf(valueString);
                         else if(requestFieldClass.equals(String.class)) value = valueString;
-                        else
-                        {
-                            value = new Gson().fromJson(valueString, requestFieldClass);
-
-                        }
+                        else value = new Gson().fromJson(valueString, requestFieldClass);
                         fieldName = field.getName();
                         fieldName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
                         Method method = serviceClass.getMethod("set" + fieldName, new Class[]{field.getType()});
@@ -184,6 +221,9 @@ public class Stitch extends HttpServlet
         }catch(Exception exception)
         {
             exception.printStackTrace();
+            try {
+                response.sendError(response.SC_INTERNAL_SERVER_ERROR);
+            } catch (Exception e) {}
         }
     }
 }
