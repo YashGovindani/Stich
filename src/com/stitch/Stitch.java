@@ -9,6 +9,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import com.google.gson.*;
 
 public class Stitch extends HttpServlet
 {
@@ -113,7 +114,12 @@ public class Stitch extends HttpServlet
                         else if(requestFieldClass.equals(float.class) || requestFieldClass.equals(Float.class)) value = Float.valueOf(valueString);
                         else if(requestFieldClass.equals(double.class) || requestFieldClass.equals(Double.class)) value = Double.valueOf(valueString);
                         else if(requestFieldClass.equals(boolean.class) || requestFieldClass.equals(Boolean.class)) value = Boolean.valueOf(valueString);
-                        else value = valueString;
+                        else if(requestFieldClass.equals(String.class)) value = valueString;
+                        else
+                        {
+                            value = new Gson().fromJson(valueString, requestFieldClass);
+
+                        }
                         fieldName = field.getName();
                         fieldName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
                         Method method = serviceClass.getMethod("set" + fieldName, new Class[]{field.getType()});
@@ -164,7 +170,8 @@ public class Stitch extends HttpServlet
                     else if(requestParameterClass.equals(float.class) || requestParameterClass.equals(Float.class)) argumentList.add(Float.valueOf(requestParameterValue));
                     else if(requestParameterClass.equals(double.class) || requestParameterClass.equals(Double.class)) argumentList.add(Double.valueOf(requestParameterValue));
                     else if(requestParameterClass.equals(boolean.class) || requestParameterClass.equals(Boolean.class)) argumentList.add(Boolean.valueOf(requestParameterValue));
-                    else argumentList.add(requestParameterValue);
+                    else if(requestParameterClass.equals(String.class)) argumentList.add(requestParameterValue);
+                    else argumentList.add(new Gson().fromJson(requestParameterValue, requestParameterClass));
                 }
                 service.getService().invoke(object, argumentList.toArray());
                 if(service.getForwardTo().length() == 0) return;
