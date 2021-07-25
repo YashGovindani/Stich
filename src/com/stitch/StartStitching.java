@@ -70,6 +70,13 @@ public class StartStitching extends HttpServlet
                     }
                     Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
+                    Security security = (Security)method.getAnnotation(Security.class);
+                    if(security != null)
+                    {
+                        Class returnType = method.getReturnType();
+                        if(!returnType.equals(boolean.class) || !returnType.equals(Boolean.class)) throw new ServiceException("Return type should be either "+ boolean.class + " or " + Boolean.class + " for security service : " + pathString);
+                        model.putSecurity(service, security.value());
+                    }
                     OnStartup onStartup = (OnStartup)method.getAnnotation(OnStartup.class);
                     if(onStartup != null)
                     {

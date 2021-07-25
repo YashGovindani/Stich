@@ -50,7 +50,7 @@
         <param-value>to</param-value>
       </init-param>
       <servlet-name>SecureAccess</servlet-name>
-      <servlet-class>com.stitch.SecureAccess</servlet-class>
+      <servlet-class>com.stitch.StitchSecurity</servlet-class>
     </servlet>
     <servlet-mapping>
       <servlet-name>SecureAccess</servlet-name>
