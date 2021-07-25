@@ -28,21 +28,33 @@
     <display-name>Stitch</display-name>
 
     <servlet>
-    <init-param>
+      <init-param>
         <param-name>SERVICE_PACKAGE_PREFIX</param-name>
         <param-value>bobby</param-value>
-    </init-param>
-    <servlet-name>StartStitching</servlet-name>
-    <servlet-class>com.stitch.StartStitching</servlet-class>
-    <load-on-startup>0</load-on-startup>
+      </init-param>
+      <servlet-name>StartStitching</servlet-name>
+      <servlet-class>com.stitch.StartStitching</servlet-class>
+      <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet>
-    <servlet-name>Stitch</servlet-name>
-    <servlet-class>com.stitch.Stitch</servlet-class>
+      <servlet-name>Stitch</servlet-name>
+      <servlet-class>com.stitch.Stitch</servlet-class>
     </servlet>
     <servlet-mapping>
-    <servlet-name>Stitch</servlet-name>
-    <url-pattern>/bobby/*</url-pattern>
+      <servlet-name>Stitch</servlet-name>
+      <url-pattern>/bobby/*</url-pattern>
+    </servlet-mapping>
+    <servlet>
+      <init-param>
+        <param-name>REQUEST_PARAMETER</param-name>
+        <param-value>to</param-value>
+      </init-param>
+      <servlet-name>SecureAccess</servlet-name>
+      <servlet-class>com.stitch.SecureAccess</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>SecureAccess</servlet-name>
+      <url-pattern>/secureAccess</url-pattern>
     </servlet-mapping>
 
 </web-app>
