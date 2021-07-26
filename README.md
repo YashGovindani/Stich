@@ -12,7 +12,7 @@ Stitch makes backend programming easier.
 **Step 1 :** Go to tomcat's webapps folder -> ```path_to_tomcat_Directory/webapps```    
 **Step 2 :** Create a new Directory -> ```mkdir webapp_name```    
 **Step 3 :** Change directory to your app directory -> ```cd webapp_name```    
-**Step 4 :** Complete the folder as follow :
+**Step 4 :** Complete the folder structure as follow :
 ```
 mkdir WEB-INF && cd WEB-INF
 mkdir classes
