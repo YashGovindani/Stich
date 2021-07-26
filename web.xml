@@ -49,12 +49,12 @@
         <param-name>REQUEST_PARAMETER</param-name>
         <param-value>to</param-value>
       </init-param>
-      <servlet-name>SecureAccess</servlet-name>
+      <servlet-name>SecuredAccess</servlet-name>
       <servlet-class>com.stitch.StitchSecurity</servlet-class>
     </servlet>
     <servlet-mapping>
-      <servlet-name>SecureAccess</servlet-name>
-      <url-pattern>/secureAccess</url-pattern>
+      <servlet-name>SecuredAccess</servlet-name>
+      <url-pattern>/securedAccess</url-pattern>
     </servlet-mapping>
 
 </web-app>
