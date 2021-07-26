@@ -29,9 +29,9 @@ public class StitchModel
                 if(path == null) throw new ServiceException("Path cannot be null");
                 if(path.length()==0) throw new ServiceException("Path length cannot be zero");
                 if(!path.startsWith("/")) throw new ServiceException("Path should start with \"/\"");
-                int i,j,count = 0;
-                for(i = path.indexOf('/', 1), j = 1; i!=-1 && j!=i; j = i + 1, i = path.indexOf('/',j), ++count);
-                if(j==i || count==0) throw new ServiceException("invalid path : " + path);
+                int i,j;
+                for(i = path.indexOf('/', 1), j = 1; i!=-1 && j!=i; j = i + 1, i = path.indexOf('/',j));
+                if(j==i) throw new ServiceException("invalid path : " + path);
                 if(!this.securityMapping.containsKey(path)) this.securityMapping.put(path, new LinkedList<Service>());
                 this.securityMapping.get(path).add(service);
             }
@@ -48,18 +48,12 @@ public class StitchModel
             throw new ServiceException(exception.getMessage());
         }
     }
-    public List<Service> getHeadSecurityList() throws ServiceException
-    {
-        try {
-            return this.headSecurityList;
-        } catch (Exception exception) {
-            throw new ServiceException(exception.getMessage());
-        }
-    }
     public List<Service> getSecurityList(String path) throws ServiceException
     {
         try {
-            return this.securityMapping.get(path);
+            List<Service> toBeReturned = new ArrayList<>(this.headSecurityList);
+            if(this.securityMapping.containsKey(path)) toBeReturned.addAll(this.securityMapping.get(path));
+            return toBeReturned;
         } catch (Exception exception) {
             throw new ServiceException(exception.getMessage());
         }
