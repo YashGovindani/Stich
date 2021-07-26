@@ -48,10 +48,12 @@ public class StartStitching extends HttpServlet
                     Boolean isGetAllowedOnMethod = (isGetAllowedOnClass || (method.getAnnotation(GET.class) != null));
                     Boolean isPostAllowedOnMethod = (isPostAllowedOnClass || (method.getAnnotation(POST.class) != null));
                     pathObject = (Path)method.getAnnotation(Path.class);
-                    if(pathObject == null) continue;
+                    Security security = (Security)method.getAnnotation(Security.class);
+                    if(pathObject == null && security == null) continue;
                     methodSecuredAccess = (SecuredAccess)method.getAnnotation(SecuredAccess.class);
                     if(methodSecuredAccess == null) methodSecuredAccess = classSecuredAccess;
-                    String servicePath = pathString + pathObject.value();
+                    String servicePath = "";
+                    if(pathObject != null) servicePath = pathString + pathObject.value();
                     Service service = new Service();
                     service.setServiceClass(classReference);
                     service.setPath(servicePath);
@@ -70,12 +72,12 @@ public class StartStitching extends HttpServlet
                     }
                     Forward forwardAnnotation = (Forward)method.getAnnotation(Forward.class);
                     if(forwardAnnotation != null) service.setForwardTo(forwardAnnotation.value());
-                    Security security = (Security)method.getAnnotation(Security.class);
                     if(security != null)
                     {
                         Class returnType = method.getReturnType();
-                        if(!returnType.equals(boolean.class) || !returnType.equals(Boolean.class)) throw new ServiceException("Return type should be either "+ boolean.class + " or " + Boolean.class + " for security service : " + pathString);
+                        if(!returnType.equals(boolean.class) && !returnType.equals(Boolean.class)) throw new ServiceException("Return type should be either "+ boolean.class + " or " + Boolean.class + " for security service : " + pathString);
                         model.putSecurity(service, security.value());
+                        continue;
                     }
                     OnStartup onStartup = (OnStartup)method.getAnnotation(OnStartup.class);
                     if(onStartup != null)
