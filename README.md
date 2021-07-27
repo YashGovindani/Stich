@@ -1,7 +1,7 @@
 <img src="needle.png" width="180px" align="right"/>
 
 # Stitch   
-Stich is a J2EE web services framework.  
+Stitch is a J2EE web services framework.  
 Stitch makes backend programming easier.   
 
 ## Usage   
