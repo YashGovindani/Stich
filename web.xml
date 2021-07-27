@@ -30,7 +30,7 @@
     <servlet>
       <init-param>
         <param-name>SERVICE_PACKAGE_PREFIX</param-name>
-        <param-value>bobby</param-value>
+        <param-value>stitch_head</param-value>
       </init-param>
       <servlet-name>StartStitching</servlet-name>
       <servlet-class>com.stitch.StartStitching</servlet-class>
@@ -42,7 +42,7 @@
     </servlet>
     <servlet-mapping>
       <servlet-name>Stitch</servlet-name>
-      <url-pattern>/bobby/*</url-pattern>
+      <url-pattern>/services/*</url-pattern>
     </servlet-mapping>
     <servlet>
       <init-param>
